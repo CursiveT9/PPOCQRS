@@ -2,8 +2,10 @@ package restaurant.api.console;
 
 import restaurant.api.command.command.*;
 import restaurant.api.command.handler.CommandHandler;
+import restaurant.api.query.dto.OrderStatsDTO;
 import restaurant.api.query.model.OrderView;
 import restaurant.api.query.repository.OrderViewRepository;
+import restaurant.api.query.service.OrderQueryService;
 
 import java.util.Scanner;
 
@@ -11,6 +13,7 @@ public class ConsoleInterface {
     private final CommandHandler cmd;
     private final OrderViewRepository query;
     private final Scanner in = new Scanner(System.in);
+    private final OrderQueryService queryService;
 
     public ConsoleInterface(CommandHandler cmd, OrderViewRepository query) {
         this.cmd = cmd;
@@ -29,6 +32,8 @@ public class ConsoleInterface {
                     case "4" -> completeOrder();
                     case "5" -> showAllOrders();
                     case "6" -> removeDish();
+                    case "7" -> showStatistics();
+                    case "8" -> showHistory();
                     case "0" -> System.exit(0);
                     default -> System.out.println("Некорректный выбор");
                 }
@@ -36,6 +41,19 @@ public class ConsoleInterface {
                 System.err.println("Ошибка: " + e.getMessage());
             }
         }
+    }
+
+    private void showStatistics() {
+        OrderStatsDTO stats = queryService.getStatistics();
+        System.out.printf("""
+            Всего заказов: %d
+            Завершено: %d
+            Популярные блюда: %s
+            """, stats.totalOrders(), stats.completedOrders(), stats.dishesPopularity());
+    }
+
+    private void showHistory() {
+        queryService.getOrderHistory().forEach(this::printOrderDTO);
     }
 
     private void createOrder() {

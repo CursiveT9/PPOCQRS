@@ -1,4 +1,7 @@
 package restaurant.api.query.dto;
 
-public class DishDTO {
-}
+public record DishDTO(
+        String name,
+        boolean prepared
+) {}
+

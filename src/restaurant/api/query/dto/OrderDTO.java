@@ -1,4 +1,9 @@
 package restaurant.api.query.dto;
 
-public class OrderDTO {
-}
+import java.util.List;
+
+public record OrderDTO(
+        String orderId,
+        String status,
+        List<DishDTO> dishes
+) {}
