@@ -14,6 +14,7 @@ public class EventHandler implements EventBus.EventListener {
 
     public void handle(Event event) {
         if (event instanceof OrderCreatedEvent e) {
+            System.out.println("Order created 222222222222222: " + e.orderId());
             repo.save(new OrderView(e.orderId()));
         } else if (event instanceof DishAddedEvent e) {
             repo.findById(e.orderId()).ifPresent(v -> v.dishes.add(new DishView(e.dishName())));

@@ -6,7 +6,7 @@ import restaurant.api.command.repository.OrderRepository;
 import restaurant.api.common.event.DishAddedEvent;
 import restaurant.api.common.event.EventBus;
 
-public class AddDishHandler {
+public class AddDishHandler implements CommandHandler<AddDishCommand> {
     private final OrderRepository repo;
     private final EventBus bus;
 
@@ -15,11 +15,12 @@ public class AddDishHandler {
         this.bus = bus;
     }
 
-    public void handle(AddDishCommand cmd) {
-        var order = repo.findById(cmd.orderId())
+    @Override
+    public void handle(AddDishCommand command) {
+        var order = repo.findById(command.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Заказ не найден"));
-        order.addDish(cmd.dishName());
+        order.addDish(command.getDishName());
         repo.save(order);
-        bus.publish(new DishAddedEvent(cmd.orderId(), cmd.dishName()));
+        bus.publish(new DishAddedEvent(command.getOrderId(), command.getDishName()));
     }
 }

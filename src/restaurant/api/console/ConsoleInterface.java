@@ -1,28 +1,38 @@
 package restaurant.api.console;
 
 import restaurant.api.command.command.*;
-import restaurant.api.command.handler.CommandHandler;
+import restaurant.api.command.handler.CommandBus;
 import restaurant.api.query.dto.OrderStatsDTO;
-import restaurant.api.query.model.OrderView;
 import restaurant.api.query.repository.OrderViewRepository;
 import restaurant.api.query.service.OrderQueryService;
+import restaurant.api.query.model.OrderView;
 
 import java.util.Scanner;
 
 public class ConsoleInterface {
-    private final CommandHandler cmd;
-    private final OrderViewRepository query;
-    private final Scanner in = new Scanner(System.in);
+    private final CommandBus commandBus;
+    private final OrderViewRepository queryRepo;
     private final OrderQueryService queryService;
+    private final Scanner in = new Scanner(System.in);
 
-    public ConsoleInterface(CommandHandler cmd, OrderViewRepository query) {
-        this.cmd = cmd;
-        this.query = query;
+    public ConsoleInterface(CommandBus commandBus, OrderViewRepository queryRepo, OrderQueryService queryService) {
+        this.commandBus = commandBus;
+        this.queryRepo = queryRepo;
+        this.queryService = queryService;
     }
 
     public void run() {
         while (true) {
-            System.out.println("\n1. Новый заказ\n2. Добавить блюдо\n3. Приготовить\n4. Завершить\n5. Показать все\n6. Удалить блюдо\n0. Выход");
+            System.out.println("""
+                    \n1. Новый заказ
+                    2. Добавить блюдо
+                    3. Приготовить
+                    4. Завершить
+                    5. Показать все
+                    6. Удалить блюдо
+                    7. Статистика
+                    0. Выход
+                    """);
             String choice = in.nextLine();
             try {
                 switch (choice) {
@@ -33,7 +43,6 @@ public class ConsoleInterface {
                     case "5" -> showAllOrders();
                     case "6" -> removeDish();
                     case "7" -> showStatistics();
-                    case "8" -> showHistory();
                     case "0" -> System.exit(0);
                     default -> System.out.println("Некорректный выбор");
                 }
@@ -52,52 +61,51 @@ public class ConsoleInterface {
             """, stats.totalOrders(), stats.completedOrders(), stats.dishesPopularity());
     }
 
-    private void showHistory() {
-        queryService.getOrderHistory().forEach(this::printOrderDTO);
-    }
-
     private void createOrder() {
         System.out.print("ID заказа: ");
         String id = in.nextLine();
-        cmd.handle(new CreateOrderCommand(id));
+        commandBus.handle(new CreateOrderCommand(id));
+        System.out.println("Заказ #" + id + " создан");
+        showAllOrders();
     }
 
     private void addDish() {
-        System.out.print("ID: ");
+        System.out.print("ID заказа: ");
         String id = in.nextLine();
         System.out.print("Блюдо: ");
         String dish = in.nextLine();
-        cmd.handle(new AddDishCommand(id, dish));
+        commandBus.handle(new AddDishCommand(id, dish));
     }
 
     private void prepareDish() {
-        System.out.print("ID: ");
+        System.out.print("ID заказа: ");
         String id = in.nextLine();
         System.out.print("Блюдо: ");
         String dish = in.nextLine();
-        cmd.handle(new PrepareDishCommand(id, dish));
+        commandBus.handle(new PrepareDishCommand(id, dish));
     }
 
     private void completeOrder() {
-        System.out.print("ID: ");
+        System.out.print("ID заказа: ");
         String id = in.nextLine();
-        cmd.handle(new CompleteOrderCommand(id));
+        commandBus.handle(new CompleteOrderCommand(id));
     }
 
     private void showAllOrders() {
-        query.findAll().forEach(this::printOrder);
+        System.out.println("\nВсе заказы:");
+        queryRepo.findAll().forEach(this::printOrder);
     }
 
     private void removeDish() {
-        System.out.print("ID: ");
+        System.out.print("ID заказа: ");
         String id = in.nextLine();
         System.out.print("Удалить блюдо: ");
         String dish = in.nextLine();
-        cmd.handle(new RemoveDishCommand(id, dish));
+        commandBus.handle(new RemoveDishCommand(id, dish));
     }
 
     private void printOrder(OrderView o) {
-        System.out.println("Заказ #" + o.orderId + " [" + o.status + "]");
+        System.out.println("\nЗаказ #" + o.orderId + " [" + o.status + "]");
         o.dishes.forEach(d -> System.out.println("- " + d.name + (d.prepared ? " (готово)" : "")));
     }
 }
