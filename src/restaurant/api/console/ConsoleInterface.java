@@ -20,37 +20,62 @@ public class ConsoleInterface {
     public void run() {
         while (true) {
             System.out.println("\n1. Новый заказ\n2. Добавить блюдо\n3. Приготовить\n4. Завершить\n5. Показать все\n6. Удалить блюдо\n0. Выход");
-            switch (in.nextLine()) {
-                case "1" -> {
-                    System.out.print("ID заказа: ");
-                    cmd.handle(new CreateOrderCommand(in.nextLine()));
+            String choice = in.nextLine();
+            try {
+                switch (choice) {
+                    case "1" -> createOrder();
+                    case "2" -> addDish();
+                    case "3" -> prepareDish();
+                    case "4" -> completeOrder();
+                    case "5" -> showAllOrders();
+                    case "6" -> removeDish();
+                    case "0" -> System.exit(0);
+                    default -> System.out.println("Некорректный выбор");
                 }
-                case "2" -> {
-                    System.out.print("ID: ");
-                    String id = in.nextLine();
-                    System.out.print("Блюдо: ");
-                    cmd.handle(new AddDishCommand(id, in.nextLine()));
-                }
-                case "3" -> {
-                    System.out.print("ID: ");
-                    String id = in.nextLine();
-                    System.out.print("Блюдо: ");
-                    cmd.handle(new PrepareDishCommand(id, in.nextLine()));
-                }
-                case "4" -> {
-                    System.out.print("ID: ");
-                    cmd.handle(new CompleteOrderCommand(in.nextLine()));
-                }
-                case "5" -> query.findAll().forEach(this::printOrder);
-                case "6" -> {
-                    System.out.print("ID: ");
-                    String id = in.nextLine();
-                    System.out.print("Удалить блюдо: ");
-                    cmd.handle(new RemoveDishCommand(id, in.nextLine()));
-                }
-                case "0" -> System.exit(0);
+            } catch (Exception e) {
+                System.err.println("Ошибка: " + e.getMessage());
             }
         }
+    }
+
+    private void createOrder() {
+        System.out.print("ID заказа: ");
+        String id = in.nextLine();
+        cmd.handle(new CreateOrderCommand(id));
+    }
+
+    private void addDish() {
+        System.out.print("ID: ");
+        String id = in.nextLine();
+        System.out.print("Блюдо: ");
+        String dish = in.nextLine();
+        cmd.handle(new AddDishCommand(id, dish));
+    }
+
+    private void prepareDish() {
+        System.out.print("ID: ");
+        String id = in.nextLine();
+        System.out.print("Блюдо: ");
+        String dish = in.nextLine();
+        cmd.handle(new PrepareDishCommand(id, dish));
+    }
+
+    private void completeOrder() {
+        System.out.print("ID: ");
+        String id = in.nextLine();
+        cmd.handle(new CompleteOrderCommand(id));
+    }
+
+    private void showAllOrders() {
+        query.findAll().forEach(this::printOrder);
+    }
+
+    private void removeDish() {
+        System.out.print("ID: ");
+        String id = in.nextLine();
+        System.out.print("Удалить блюдо: ");
+        String dish = in.nextLine();
+        cmd.handle(new RemoveDishCommand(id, dish));
     }
 
     private void printOrder(OrderView o) {

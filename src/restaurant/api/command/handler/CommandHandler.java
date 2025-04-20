@@ -14,41 +14,67 @@ public class CommandHandler {
         this.bus = bus;
     }
 
+    // Обработка команды на создание заказа
     public void handle(CreateOrderCommand cmd) {
-        CustomerOrder order = new CustomerOrder(cmd.orderId());
-        repo.save(order);
-        bus.publish(new OrderCreatedEvent(cmd.orderId()));
+        try {
+            CustomerOrder order = new CustomerOrder(cmd.orderId());
+            repo.save(order);
+            bus.publish(new OrderCreatedEvent(cmd.orderId()));
+        } catch (Exception e) {
+            System.err.println("Ошибка при создании заказа: " + e.getMessage());
+        }
     }
 
+    // Обработка команды на добавление блюда
     public void handle(AddDishCommand cmd) {
-        var order = get(cmd.orderId());
-        order.addDish(cmd.dishName());
-        repo.save(order);
-        bus.publish(new DishAddedEvent(cmd.orderId(), cmd.dishName()));
+        try {
+            var order = get(cmd.orderId());
+            order.addDish(cmd.dishName());
+            repo.save(order);
+            bus.publish(new DishAddedEvent(cmd.orderId(), cmd.dishName()));
+        } catch (Exception e) {
+            System.err.println("Ошибка при добавлении блюда: " + e.getMessage());
+        }
     }
 
+    // Обработка команды на приготовление блюда
     public void handle(PrepareDishCommand cmd) {
-        var order = get(cmd.orderId());
-        order.prepareDish(cmd.dishName());
-        repo.save(order);
-        bus.publish(new DishPreparedEvent(cmd.orderId(), cmd.dishName()));
+        try {
+            var order = get(cmd.orderId());
+            order.prepareDish(cmd.dishName());
+            repo.save(order);
+            bus.publish(new DishPreparedEvent(cmd.orderId(), cmd.dishName()));
+        } catch (Exception e) {
+            System.err.println("Ошибка при приготовлении блюда: " + e.getMessage());
+        }
     }
 
+    // Обработка команды на завершение заказа
     public void handle(CompleteOrderCommand cmd) {
-        var order = get(cmd.orderId());
-        order.completeOrder();
-        repo.save(order);
-        bus.publish(new OrderCompletedEvent(cmd.orderId()));
+        try {
+            var order = get(cmd.orderId());
+            order.completeOrder();
+            repo.save(order);
+            bus.publish(new OrderCompletedEvent(cmd.orderId()));
+        } catch (Exception e) {
+            System.err.println("Ошибка при завершении заказа: " + e.getMessage());
+        }
     }
 
+    // Обработка команды на удаление блюда
     public void handle(RemoveDishCommand cmd) {
-        var order = get(cmd.orderId());
-        order.removeDish(cmd.dishName());
-        repo.save(order);
-        bus.publish(new DishRemovedEvent(cmd.orderId(), cmd.dishName()));
+        try {
+            var order = get(cmd.orderId());
+            order.removeDish(cmd.dishName());
+            repo.save(order);
+            bus.publish(new DishRemovedEvent(cmd.orderId(), cmd.dishName()));
+        } catch (Exception e) {
+            System.err.println("Ошибка при удалении блюда: " + e.getMessage());
+        }
     }
 
+    // Получение заказа по ID
     private CustomerOrder get(String id) {
-        return repo.findById(id).orElseThrow(() -> new RuntimeException("Нет заказа"));
+        return repo.findById(id).orElseThrow(() -> new RuntimeException("Нет заказа с ID: " + id));
     }
 }
