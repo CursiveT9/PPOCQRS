@@ -6,6 +6,7 @@ import restaurant.api.command.repository.OrderRepository;
 import restaurant.api.common.event.*;
 
 public class CommandHandler {
+
     private final OrderRepository repo;
     private final EventBus bus;
 
@@ -14,67 +15,66 @@ public class CommandHandler {
         this.bus = bus;
     }
 
-    // Обработка команды на создание заказа
+    // Общая логика обработки команд
+    private <T extends Command> void handleCommand(T cmd, CommandAction<T> action) {
+        try {
+            action.execute(cmd);
+        } catch (Exception e) {
+            System.err.println("Ошибка при обработке команды: " + e.getMessage());
+        }
+    }
+
+    // Логика для каждой команды
     public void handle(CreateOrderCommand cmd) {
-        try {
-            CustomerOrder order = new CustomerOrder(cmd.orderId());
+        handleCommand(cmd, c -> {
+            CustomerOrder order = new CustomerOrder(c.orderId());
             repo.save(order);
-            bus.publish(new OrderCreatedEvent(cmd.orderId()));
-        } catch (Exception e) {
-            System.err.println("Ошибка при создании заказа: " + e.getMessage());
-        }
+            bus.publish(new OrderCreatedEvent(c.orderId()));
+        });
     }
 
-    // Обработка команды на добавление блюда
     public void handle(AddDishCommand cmd) {
-        try {
-            var order = get(cmd.orderId());
-            order.addDish(cmd.dishName());
+        handleCommand(cmd, c -> {
+            var order = get(c.orderId());
+            order.addDish(c.dishName());
             repo.save(order);
-            bus.publish(new DishAddedEvent(cmd.orderId(), cmd.dishName()));
-        } catch (Exception e) {
-            System.err.println("Ошибка при добавлении блюда: " + e.getMessage());
-        }
+            bus.publish(new DishAddedEvent(c.orderId(), c.dishName()));
+        });
     }
 
-    // Обработка команды на приготовление блюда
     public void handle(PrepareDishCommand cmd) {
-        try {
-            var order = get(cmd.orderId());
-            order.prepareDish(cmd.dishName());
+        handleCommand(cmd, c -> {
+            var order = get(c.orderId());
+            order.prepareDish(c.dishName());
             repo.save(order);
-            bus.publish(new DishPreparedEvent(cmd.orderId(), cmd.dishName()));
-        } catch (Exception e) {
-            System.err.println("Ошибка при приготовлении блюда: " + e.getMessage());
-        }
+            bus.publish(new DishPreparedEvent(c.orderId(), c.dishName()));
+        });
     }
 
-    // Обработка команды на завершение заказа
     public void handle(CompleteOrderCommand cmd) {
-        try {
-            var order = get(cmd.orderId());
+        handleCommand(cmd, c -> {
+            var order = get(c.orderId());
             order.completeOrder();
             repo.save(order);
-            bus.publish(new OrderCompletedEvent(cmd.orderId()));
-        } catch (Exception e) {
-            System.err.println("Ошибка при завершении заказа: " + e.getMessage());
-        }
+            bus.publish(new OrderCompletedEvent(c.orderId()));
+        });
     }
 
-    // Обработка команды на удаление блюда
     public void handle(RemoveDishCommand cmd) {
-        try {
-            var order = get(cmd.orderId());
-            order.removeDish(cmd.dishName());
+        handleCommand(cmd, c -> {
+            var order = get(c.orderId());
+            order.removeDish(c.dishName());
             repo.save(order);
-            bus.publish(new DishRemovedEvent(cmd.orderId(), cmd.dishName()));
-        } catch (Exception e) {
-            System.err.println("Ошибка при удалении блюда: " + e.getMessage());
-        }
+            bus.publish(new DishRemovedEvent(c.orderId(), c.dishName()));
+        });
     }
 
-    // Получение заказа по ID
     private CustomerOrder get(String id) {
         return repo.findById(id).orElseThrow(() -> new RuntimeException("Нет заказа с ID: " + id));
+    }
+
+    @FunctionalInterface
+    public interface CommandAction<T> {
+        void execute(T command) throws Exception;
     }
 }
