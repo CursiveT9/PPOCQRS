@@ -6,6 +6,7 @@ import restaurant.api.command.repository.OrderRepository;
 import restaurant.api.common.event.EventBus;
 import restaurant.api.console.ConsoleInterface;
 import restaurant.api.query.repository.OrderViewRepository;
+import restaurant.api.query.service.EventHandler;
 import restaurant.api.query.service.OrderQueryService;
 
 public class RestaurantApplication {
@@ -17,6 +18,9 @@ public class RestaurantApplication {
         var commandRepo = new OrderRepository();
         var queryRepo = new OrderViewRepository();
 
+        // Регистрируем обработчик событий
+        bus.register(new EventHandler(queryRepo)); // <-- Добавьте эту строку
+
         var commandBus = new CommandBus();
 
         // регистрируем обработчики
@@ -25,7 +29,6 @@ public class RestaurantApplication {
         commandBus.registerHandler(PrepareDishCommand.class, new PrepareDishHandler(commandRepo, bus));
         commandBus.registerHandler(RemoveDishCommand.class, new RemoveDishHandler(commandRepo, bus));
         commandBus.registerHandler(CompleteOrderCommand.class, new CompleteOrderHandler(commandRepo, bus));
-
 
         // Создание сервиса запросов
         var queryService = new OrderQueryService(queryRepo);
