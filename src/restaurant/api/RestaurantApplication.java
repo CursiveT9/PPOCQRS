@@ -19,7 +19,7 @@ public class RestaurantApplication {
         var queryRepo = new OrderViewRepository();
 
         // Регистрируем обработчик событий
-        bus.register(new EventHandler(queryRepo)); // <-- Добавьте эту строку
+        bus.register(new EventHandler(queryRepo));
 
         var commandBus = new CommandBus();
 
